@@ -90,7 +90,7 @@ _project_supports_direnv() {
 }
 
 _project_initialize_direnv() {
-    if _project_supports_direnv; then
+    if _project_supports_direnv && [ ! -f '.envrc' ]; then
         touch '.envrc' && direnv allow '.'
         _project_ignore_file '.envrc'
     fi
