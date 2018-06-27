@@ -14,19 +14,19 @@ project() {
 
     cd "$project_name"
 
-    _project_initialize_git
+    _initialize_git
 
-    _project_initialize_direnv
+    _initialize_direnv
 
-    _project_attach_session
+    _attach_session
 }
 
-_project_supports_git() {
+_supports_git() {
     hash git >/dev/null 2>&1
 }
 
-_project_initialize_git() {
-    if _project_supports_git; then
+_initialize_git() {
+    if _supports_git; then
         if ! git status >/dev/null 2>&1; then
             git init .
         fi
@@ -38,9 +38,9 @@ _project_initialize_git() {
     fi
 }
 
-_project_ignore_file() {
+_ignore_file() {
     local file="$1"
-    if _project_supports_git; then
+    if _supports_git; then
         if ! grep "^$file\$" .gitignore >/dev/null 2>&1; then
             echo "$file" >> .gitignore
             git add .gitignore
@@ -48,57 +48,30 @@ _project_ignore_file() {
     fi
 }
 
-_project_supports_sessions() {
+_supports_sessions() {
     hash tmux >/dev/null 2>&1
 }
 
 _session_from_project() {
-  echo "${project_name//\./_}"
+    echo "${project_name//\./_}"
 }
 
-_project_list_session_attachments() {
+_attach_session() {
     local project_name="${1:-${PWD##*/}}"
     local session_name="$(_session_from_project $project_name)"
-    local session_id=0
-    if _project_supports_sessions; then
-        tmux list-sessions \
-            -F "#{session_name} #{?session_attached,attached,detached}" \
-            | grep "^$session_name$pss" | sort | sed "s|^$session_name$pss||"
+    if _supports_sessions; then
+        exec tmux new-session -t "$session_name"
     fi
 }
 
-_project_attach_session() {
-    local project_name="${1:-${PWD##*/}}"
-    local session_name="$(_session_from_project $project_name)"
-    local session_id=0
-    if _project_supports_sessions; then
-        local first_detached_session="$(
-            _project_list_session_attachments | grep 'detached' \
-                | head -1 | awk '{ print $1; }'
-        )"
-        local last_attached_session="$(
-            _project_list_session_attachments | grep 'attached' \
-                | tail -1 | awk '{ print $1; }'
-        )"
-        if [ -n "$first_detached_session" ]; then
-            echo "Reattaching to detached session $first_detached_session"
-            session_id="$first_detached_session"
-        elif  [ -n "$last_attached_session" ]; then
-            echo "Attaching to next session after $last_attached_session"
-            session_id=$(( $last_attached_session + 1 ))
-        fi
-        exec tmux new-session -A -s "$session_name$pss$session_id"
-    fi
-}
-
-_project_supports_direnv() {
+_supports_direnv() {
     hash direnv >/dev/null 2>&1
 }
 
-_project_initialize_direnv() {
-    if _project_supports_direnv && [ ! -f '.envrc' ]; then
+_initialize_direnv() {
+    if _supports_direnv && [ ! -f '.envrc' ]; then
         touch '.envrc' && direnv allow '.'
-        _project_ignore_file '.envrc'
+        _ignore_file '.envrc'
     fi
 }
 
