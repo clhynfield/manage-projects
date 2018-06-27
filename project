@@ -16,7 +16,7 @@ project() {
 
     _initialize_git
 
-    _initialize_direnv
+    _initialize_environment
 
     _attach_session
 }
@@ -53,7 +53,7 @@ _supports_sessions() {
 }
 
 _session_from_project() {
-    echo "${project_name//\./_}"
+    echo "project-${1//\./_}"
 }
 
 _attach_session() {
@@ -68,11 +68,13 @@ _supports_direnv() {
     hash direnv >/dev/null 2>&1
 }
 
-_initialize_direnv() {
+_initialize_environment() {
     if _supports_direnv && [ ! -f '.envrc' ]; then
         touch '.envrc' && direnv allow '.'
         _ignore_file '.envrc'
     fi
+    export HISTFILE="$PWD/.${SHELL##*/}_history"
+    _ignore_file ".${SHELL##*/}_history"
 }
 
 project "$*"
