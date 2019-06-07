@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-project_home="$HOME/Projects"
+project_home="$HOME/workspace"
 project_session_separator='/'
 pss="$project_session_separator"
 
