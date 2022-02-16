@@ -21,12 +21,12 @@ project() {
     _attach_session
 }
 
-_supports_git() {
+_git_supported() {
     hash git >/dev/null 2>&1
 }
 
 _initialize_git() {
-    if _supports_git; then
+    if _git_supported; then
         if ! git status >/dev/null 2>&1; then
             git init .
         fi
@@ -40,7 +40,7 @@ _initialize_git() {
 
 _ignore_file() {
     local file="$1"
-    if _supports_git; then
+    if _git_supported; then
         if ! grep "^$file\$" .gitignore >/dev/null 2>&1; then
             echo "$file" >> .gitignore
             git add .gitignore
